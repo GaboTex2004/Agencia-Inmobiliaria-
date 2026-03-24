@@ -30,3 +30,21 @@ def login(request):
         })
     else:
         return Response({'error': 'Credenciales inválidas'}, status=400)
+    
+@api_view(['POST'])
+def register(request):
+    serializer = UsuarioSerializer(data=request.data)
+
+    if serializer.is_valid():
+        user = serializer.save()
+        user.set_password(request.data['password'])
+        user.save()
+
+        token, created = Token.objects.get_or_create(user=user)
+
+        return Response({
+            'token': token.key,
+            'email': user.email
+        })
+    
+    return Response(serializer.errors, status=400)
